@@ -1,11 +1,8 @@
-// File: app/sertifikat/[id]/page.tsx (ENHANCED LAYOUT VERSION)
-
 import { supabase } from '@/lib/supabaseClient'
 import Link from 'next/link'
 import PrintButton from '@/components/PrintButton' 
 import QRCode from 'qrcode'; 
 
-// Helper functions
 const formatDuration = (totalSeconds: number) => {
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -44,11 +41,11 @@ export default async function CertificatePage(props: { params: Promise<{ id: str
   const qrCodeDataUrl = await generateQRCodeDataURL(certUrl);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center py-10 px-4 font-sans text-gray-800 print:bg-white print:scale-100">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center py-10 px-4 font-sans text-gray-800 print:bg-white print:py-0 print:px-0">
       
-      <div className="w-full flex flex-col items-center scale-[0.35] sm:scale-50 md:scale-75 lg:scale-100 origin-top">
+      <div className="w-full flex flex-col items-center scale-[0.35] sm:scale-50 md:scale-75 lg:scale-100 origin-top print:scale-100 print:origin-center">
       
-      <div className="w-full max-w-4xl min-w-[896px] flex justify-between items-center mb-8 px-2 no-print">
+      <div className="w-full max-w-4xl min-w-[896px] flex justify-between items-center mb-8 px-2 no-print print:hidden">
         <Link href="/" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors opacity-70 hover:opacity-100 flex items-center gap-1">
           &larr; Kembali
         </Link>
@@ -61,7 +58,7 @@ export default async function CertificatePage(props: { params: Promise<{ id: str
         </div>
       </div>
 
-      <div className="bg-white w-full max-w-4xl min-w-[896px] min-h-[650px] shadow-xl border border-gray-300 p-16 relative flex flex-col text-gray-900">
+      <div className="bg-white w-full max-w-4xl min-w-[896px] min-h-[650px] shadow-xl border border-gray-300 p-16 relative flex flex-col text-gray-900 print:shadow-none print:border-none print:min-w-0 print:max-w-none print:w-full print:m-0">
         
         <div className="absolute inset-5 border-2 border-gray-300 pointer-events-none print:border-black"></div>
 
@@ -76,7 +73,7 @@ export default async function CertificatePage(props: { params: Promise<{ id: str
         </div>
 
         <div className="flex-1 flex flex-col justify-between">
-
+            
             <div className="mb-8">
                 <p className="text-gray-500 font-medium text-lg mb-4">This is to certify that</p>
                 
@@ -152,7 +149,7 @@ export default async function CertificatePage(props: { params: Promise<{ id: str
 
       </div>
       
-      <div className="w-full max-w-4xl min-w-[896px] mt-8 px-4 no-print">
+      <div className="w-full max-w-4xl min-w-[896px] mt-8 px-4 no-print print:hidden">
         <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
