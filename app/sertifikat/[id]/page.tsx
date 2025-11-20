@@ -39,6 +39,7 @@ export default async function CertificatePage(props: { params: Promise<{ id: str
   const linkedInUrl = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent("Menyelesaikan Playlist: " + data.playlist_title)}&organizationName=${encodeURIComponent("CertifYT (via " + data.channel_name + ")")}&issueYear=${new Date(data.created_at).getFullYear()}&issueMonth=${new Date(data.created_at).getMonth() + 1}&certUrl=${encodeURIComponent(certUrl)}&certId=${data.id}`;
 
   const qrCodeDataUrl = await generateQRCodeDataURL(certUrl);
+  const videoList: string[] = data.video_list || [];
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-10 px-4 font-sans text-gray-800 print:bg-white print:py-0 print:px-0">
@@ -105,7 +106,7 @@ export default async function CertificatePage(props: { params: Promise<{ id: str
 
                        <div>
                           <p className="text-xs text-gray-400 uppercase tracking-wide mb-2">Source Channel</p>
-                          <p className="text-lg font-bold text-slate-700 truncate">{data.channel_name}</p>
+                          <p className="text-lg font-bold text-slate-700 break-words leading-tight">{data.channel_name}</p>
                        </div>
                     </div>
 
@@ -198,6 +199,26 @@ export default async function CertificatePage(props: { params: Promise<{ id: str
           </div>
 
         </div>
+
+        {videoList.length > 0 && (
+          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mt-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Materi yang Dipelajari</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Daftar video yang telah diselesaikan dalam playlist ini:
+            </p>
+            <ul className="space-y-2 max-h-96 overflow-y-auto">
+              {videoList.map((title, index) => (
+                <li key={index} className="flex items-start gap-3 text-sm text-gray-700 border-b border-gray-100 pb-2 last:border-0">
+                  <span className="flex-shrink-0 w-6 h-6 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
+                    {index + 1}
+                  </span>
+                  <span className="pt-0.5">{title}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
       </div>
       
       </div>

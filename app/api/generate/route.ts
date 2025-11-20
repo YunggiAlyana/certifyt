@@ -35,6 +35,7 @@ export async function POST(request: Request) {
         user_email: 'temp@temp.com', 
         playlist_id: playlistId,
         playlist_title: playlistData.playlistTitle,
+        video_list: playlistData.videoList,
         channel_name: playlistData.channelName,
         video_count: playlistData.videoCount,
         total_duration_seconds: playlistData.totalDurationSeconds,

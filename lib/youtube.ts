@@ -1,4 +1,5 @@
-import { google } from 'googleapis'
+// File: lib/youtube.ts
+import { google } from 'googleapis';
 
 const youtube = google.youtube({
   version: 'v3',
@@ -9,71 +10,46 @@ function parseISODuration(duration: string): number {
   const regex = /P(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)W)?(?:(\d+)D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?/;
   const parts = duration.match(regex);
   if (!parts) return 0;
-
   const [, years, months, weeks, days, hours, minutes, seconds] = parts.map(parseFloat);
-
   return (
-    (years || 0) * 31536000 +
-    (months || 0) * 2628000 +
-    (weeks || 0) * 604800 +
-    (days || 0) * 86400 +
-    (hours || 0) * 3600 +
-    (minutes || 0) * 60 +
-    (seconds || 0)
+    (years || 0) * 31536000 + (months || 0) * 2628000 + (weeks || 0) * 604800 + (days || 0) * 86400 + (hours || 0) * 3600 + (minutes || 0) * 60 + (seconds || 0)
   );
 }
 
-async function getPlaylistDetails(playlistId: string) {
-  const res = await youtube.playlists.list({
-    part: ['snippet', 'contentDetails'],
-    id: [playlistId],
-  });
-  const playlist = res.data.items?.[0];
-  return {
-    title: playlist?.snippet?.title || 'Judul Tidak Ditemukan',
-    channelName: playlist?.snippet?.channelTitle || 'Channel Tidak Ditemukan',
-    videoCount: playlist?.contentDetails?.itemCount || 0,
-  };
-}
-
-async function getPlaylistVideoIds(playlistId: string): Promise<string[]> {
-  let videoIds: string[] = [];
+// Kita ubah ini untuk mengambil ID DAN JUDUL sekaligus
+async function getPlaylistVideos(playlistId: string) {
+  let videos: { id: string; title: string }[] = [];
   let nextPageToken: string | undefined | null = undefined;
 
-  while (true) {
+  do {
     const res: any = await youtube.playlistItems.list({
-      part: ['contentDetails'],
+      part: ['snippet', 'contentDetails'], // Ambil snippet untuk judul
       playlistId: playlistId,
       maxResults: 50,
       pageToken: nextPageToken || undefined,
     });
 
-    const ids = res.data.items?.map((item: any) => item.contentDetails?.videoId).filter(Boolean) as string[];
-    videoIds.push(...ids);
-    
+    const items = res.data.items?.map((item: any) => ({
+      id: item.contentDetails?.videoId,
+      title: item.snippet?.title // Ambil judul video
+    })).filter((v: any) => v.id) || [];
+
+    videos.push(...items);
     nextPageToken = res.data.nextPageToken;
+  } while (nextPageToken);
 
-    if (!nextPageToken) {
-      break;
-    }
-  }
-
-  return videoIds;
+  return videos;
 }
 
 async function getVideoDurations(videoIds: string[]): Promise<number> {
   let totalSeconds = 0;
-
   for (let i = 0; i < videoIds.length; i += 50) {
-    const batch = videoIds.slice(i, i + 50); 
-
-    const res = await youtube.videos.list({
+    const batch = videoIds.slice(i, i + 50);
+    const res: any = await youtube.videos.list({
       part: ['contentDetails'],
       id: batch,
     });
-
-    const durations = res.data.items?.map(item => item.contentDetails?.duration || '') || [];
-
+    const durations = res.data.items?.map((item: any) => item.contentDetails?.duration || '') || [];
     for (const duration of durations) {
       totalSeconds += parseISODuration(duration);
     }
@@ -83,17 +59,26 @@ async function getVideoDurations(videoIds: string[]): Promise<number> {
 
 export async function fetchYouTubePlaylistData(playlistId: string) {
   try {
-    const details = await getPlaylistDetails(playlistId);
-
-    const videoIds = await getPlaylistVideoIds(playlistId);
-
+    // 1. Ambil Info Playlist
+    const playlistRes = await youtube.playlists.list({
+      part: ['snippet', 'contentDetails'],
+      id: [playlistId],
+    });
+    const playlist = playlistRes.data.items?.[0];
+    
+    // 2. Ambil Semua Video (ID & Judul)
+    const allVideos = await getPlaylistVideos(playlistId);
+    const videoIds = allVideos.map(v => v.id);
+    
+    // 3. Hitung Durasi
     const totalDurationSeconds = await getVideoDurations(videoIds);
 
     return {
-      playlistTitle: details.title,
-      channelName: details.channelName,
-      videoCount: videoIds.length,
-      totalDurationSeconds: totalDurationSeconds, 
+      playlistTitle: playlist?.snippet?.title || 'Unknown',
+      channelName: playlist?.snippet?.channelTitle || 'Unknown',
+      videoCount: allVideos.length,
+      totalDurationSeconds: totalDurationSeconds,
+      videoList: allVideos.map(v => v.title) // Kita simpan JUDULNYA juga sekarang!
     };
 
   } catch (error) {
